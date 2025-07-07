@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "module": "node16",
+    "target": "es2015",
+    "jsx": "react",
+    "allowJs": true,
+    "baseUrl": ".",
+    "experimentalDecorators": true,
+    "plugins": [{ "name": "typescript-plugin-css-modules" }],
+    "moduleResolution": "node16"
+  },
+  "include": ["src/**/*.ts"]
+}

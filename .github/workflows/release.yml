@@ -1,0 +1,87 @@
+name: Build and Release Joplin Plugin
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if version changed
+        id: version_check
+        run: |
+          OLD_VERSION=$(git show HEAD^:package.json | jq -r .version)
+          NEW_VERSION=$(jq -r .version package.json)
+
+          echo "Old version: $OLD_VERSION"
+          echo "New version: $NEW_VERSION"
+
+          if [ "$OLD_VERSION" == "$NEW_VERSION" ]; then
+            echo "Version has not changed. Skipping build."
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "Version changed."
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Node.js
+        if: steps.version_check.outputs.skip != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        if: steps.version_check.outputs.skip != 'true'
+        run: npm install
+
+      - name: Build plugin
+        if: steps.version_check.outputs.skip != 'true'
+        run: npm run dist
+
+      - name: Read version and plugin ID
+        if: steps.version_check.outputs.skip != 'true'
+        id: meta
+        run: |
+          VERSION=$(jq -r .version package.json)
+          ID=$(jq -r .id src/manifest.json)
+          TAG="v$VERSION"
+
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "PLUGIN_ID=$ID" >> $GITHUB_ENV
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "jpl_path=publish/${ID}.jpl" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Create Git tag if it doesn't exist
+        if: steps.version_check.outputs.skip != 'true'
+        run: |
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists"
+          else
+            git config user.name "github-actions"
+            git config user.email "github-actions@users.noreply.github.com"
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+
+      - name: Create GitHub release
+        if: steps.version_check.outputs.skip != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: "Release ${{ steps.meta.outputs.tag }}"
+          body: "Built from version `${{ steps.meta.outputs.version }}`"
+          files: ${{ steps.meta.outputs.jpl_path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

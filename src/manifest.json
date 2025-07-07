@@ -1,0 +1,16 @@
+{
+  "manifest_version": 1,
+  "id": "io.github.kingcruziii.joplin-plugin-notexl",
+  "app_min_version": "2.13",
+  "version": "1.0.0",
+  "name": "NoteXL",
+  "description": "A plugin that adds Spreadsheets to Joplin.",
+  "author": "Cruz Muniz",
+  "homepage_url": "https://github.com/KingCruzIII/joplin-plugin-notexl",
+  "repository_url": "https://github.com/KingCruzIII/joplin-plugin-notexl",
+  "platforms": ["desktop"],
+  "keywords": ["joplin-plugin", "spreadsheet", "editor", "notexl"],
+  "categories": ["editor"],
+  "screenshots": [],
+  "icons": {}
+}
