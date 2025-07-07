@@ -7,19 +7,12 @@ Logger.initializeGlobalLogger(globalLogger);
 
 const logger = Logger.create("NoteXL.NoteClient");
 
-export const noteXLInitTitle = "```NoteXLInit```";
 const noteXLDataPre = "```NoteXL-data";
 const noteXLDataPost = "```";
 const noteXLRegexString = `${noteXLDataPre}\n(.*)${noteXLDataPost}`;
+export const noteInitString = `${noteXLDataPre}\n${JSON.stringify({})}${noteXLDataPost}`;
 
-const isNoteXLInit = (input: string): boolean => input.includes(noteXLInitTitle);
-export const isNoteXL = (input: string): boolean => input.includes(noteXLDataPre) || isNoteXLInit(input);
-
-export const getDataFromNoteXL = (input: string) => {
-  const reg = new RegExp(noteXLRegexString, "gm");
-  const result = reg.exec(input);
-  return result ? JSON.parse(result[1]) : {};
-};
+export const isNoteXL = (input: string): boolean => input.includes(noteXLDataPre);
 
 export const saveNoteXL = async (data: string) => {
   logger.debug("@saveNoteXL: " + data);
@@ -33,12 +26,7 @@ export const saveNoteXL = async (data: string) => {
 
 export const loadNoteXL = async () => {
   const note = await joplin.workspace.selectedNote();
-  logger.debug("@loadNoteXL: " + note);
-
-  if (isNoteXLInit(note?.body)) {
-    logger.debug("NoteXL: Initializing");
-    await saveNoteXL("{}");
-  }
+  logger.debug("@loadNoteXL: " + note.body);
 
   const reg = new RegExp(noteXLRegexString, "gm");
   const result = reg.exec(note?.body);

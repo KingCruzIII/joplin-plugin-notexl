@@ -171,6 +171,7 @@ const stop = () => {
 
 const update = (data = {}, themeValue: number) => {
   logger.info("univer.update");
+  logger.info("univer.update" + JSON.stringify(data));
   const darkThemes = [2, 4, 5, 6, 7, 8];
   const isDarkTheme = darkThemes.includes(themeValue);
   univerAPI?.dispose();
